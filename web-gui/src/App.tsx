@@ -1,5 +1,5 @@
 import React from 'react';
-import { RepositoryPicker } from "./repository-locator/repository-picker"
+import { RepositoryPicker } from "./repository/repository-picker"
 import './App.css';
 
 function App() {
