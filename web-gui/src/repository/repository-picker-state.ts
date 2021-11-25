@@ -1,5 +1,5 @@
 import {createSlice, Draft, PayloadAction} from "@reduxjs/toolkit";
-import {put, takeLatest, call } from "redux-saga/effects";
+import {put, takeLatest, call, delay } from "redux-saga/effects";
 import {RootState} from "../store";
 import {isHttpError, isNetworkError} from "../http-error";
 import {
@@ -9,7 +9,8 @@ import {
 } from "./repository-client";
 
 export type RepositoryPickerState = {
-    repoUrl: string
+    repoUrl: string,
+    statusHeading: string,
     statusText: string
 };
 
@@ -21,7 +22,8 @@ export const repositoryPickerSlice = createSlice({
     name: "repositoryPicker",
     initialState: {
         repoUrl: "http://github.com/",
-        statusText: "-"
+        statusHeading: "-",
+        statusText: ""
     },
     reducers: {
         repoUrlChanged: (state: Draft<RepositoryPickerState>, updatedRepoUrl: PayloadAction<string>) => {
@@ -29,22 +31,28 @@ export const repositoryPickerSlice = createSlice({
         },
         repoUrlLookedUp: (state: Draft<RepositoryPickerState>, status: PayloadAction<CheckRepoRequestOutcome>) => {
             const result = status.payload;
+            state.statusText = ""
             if (isNetworkError(result)) {
-                state.statusText = `A network error occurred trying to contact repo.`;
+                state.statusHeading = `A network error occurred trying to contact repo.`;
+                state.statusText = result.message;
                 console.error(result);
             } else if (isHttpError(result)) {
-                state.statusText = `The repo responded with an error (status code ${result.status}: ${result.message}}`;
+                state.statusHeading = `The repo responded with an error (status code ${result.status})`;
+                state.statusText = result.message;
                 console.error(result);
             } else if (isRepoNotFoundError(result)) {
-                state.statusText = `Repo not found: ${result.message}}`;
+                state.statusHeading = `Repo not found`;
+                state.statusText = result.message;
             } else {
-                state.statusText = `Shouldn't be here, no service endpoint exists yet! ${JSON.stringify(result)}}`;
+                state.statusHeading = `'${result.title}' by ${result.owner}`;
+                state.statusText = result.description
                 console.log("Repo external info", result);
             }
         },
         repoUrlInvalid: (state: Draft<RepositoryPickerState>, status: PayloadAction<TypeError>) => {
             const result = status.payload;
-            state.statusText = `Enter a valid URL.`
+            state.statusText = "";
+            state.statusHeading = `Enter a valid URL.`
             console.log("Invalid URL", result.name, result.message, result.stack)
         }
     }
@@ -58,6 +66,7 @@ export function selectRepositoryPicker(store: RootState): RepositoryPickerState 
 
 function* lookupRepo(action: PayloadAction<string>) {
     yield put({ type:repoUrlChanged.toString(), payload: action.payload });
+    yield delay(500);
     let validUrl:URL | null = null;
     try {
         validUrl = new URL(action.payload);

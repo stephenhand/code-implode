@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import StatusCode from "status-code-enum";
 import {HttpError, HttpRequestOutcome, isHttpError, makeSerializable} from "../http-error";
 
-const REPO_SERVICE_URL = "http://localhost:8080"
+const REPO_SERVICE_URL = "http://localhost:3001"
 
 export type PublicRepoInfo = {
     title: string,
@@ -26,27 +26,31 @@ export async function checkRepoUrl(url: URL): Promise<CheckRepoRequestOutcome> {
     let response;
     try {
         response = await axios.get(`${REPO_SERVICE_URL}/check?url=${url}`);
+        return response.data as PublicRepoInfo;
     } catch (error) {
+        const axiosError: AxiosError = <AxiosError>error;
+        if (axiosError.response) {
+            switch (axiosError.response.status) {
+                case StatusCode.SuccessOK:
+                case StatusCode.ClientErrorNotFound:
+                    return {
+                        message: `No valid code repo could be found at ${url}`,
+                        httpError: {
+                            status: StatusCode.ClientErrorNotFound,
+                            message: axiosError.response.data?.toString()
+                        }
+                    };
+                default:
+                    return {
+                        status: StatusCode.ServerErrorInternal,
+                        message: axiosError.response.data?.toString()
+                    }
+            }
+        }
         return {
             message: `Network error occurred calling ${url}`,
-            underlyingError: makeSerializable(error as Error)
+            underlyingError: makeSerializable(axiosError)
         }
     }
-    switch (response.status) {
-        case StatusCode.SuccessOK:
-            return response.data as PublicRepoInfo;
-        case StatusCode.ClientErrorNotFound:
-            return {
-                message: `No valid code repo could be found at ${url}`,
-                httpError: {
-                    status: StatusCode.ClientErrorNotFound,
-                    message: response.data?.toString()
-                }
-            };
-        default:
-            return {
-                status: StatusCode.ServerErrorInternal,
-                message: response.data?.toString()
-            }
-    }
+
 }
