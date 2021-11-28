@@ -105,3 +105,6 @@ dist
 
 # Jetbrains IDE files
 .idea/
+
+# Dev Postgres data
+data-files/

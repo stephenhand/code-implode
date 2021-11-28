@@ -27,30 +27,31 @@ export async function checkRepoUrl(url: URL): Promise<CheckRepoRequestOutcome> {
     try {
         response = await axios.get(`${REPO_SERVICE_URL}/check?url=${url}`);
         return response.data as PublicRepoInfo;
-    } catch (error) {
-        const axiosError: AxiosError = <AxiosError>error;
-        if (axiosError.response) {
-            switch (axiosError.response.status) {
+    } catch (untypedError: any) {
+        const error: Error = (untypedError instanceof Error) ? untypedError :
+            new Error((untypedError ?? "no error payload").toString())
+        if (axios.isAxiosError(error) && error.response) {
+            switch (error.response.status) {
                 case StatusCode.SuccessOK:
                 case StatusCode.ClientErrorNotFound:
                     return {
                         message: `No valid code repo could be found at ${url}`,
                         httpError: {
                             status: StatusCode.ClientErrorNotFound,
-                            message: axiosError.response.data?.toString()
+                            message: error.response.data?.toString()
                         }
                     };
                 default:
                     return {
                         status: StatusCode.ServerErrorInternal,
-                        message: axiosError.response.data?.toString()
+                        message: error.response.data?.toString()
                     }
             }
         }
         return {
             message: `Network error occurred calling ${url}`,
-            underlyingError: makeSerializable(axiosError)
-        }
+            underlyingError: makeSerializable(error)
+        };
     }
 
 }

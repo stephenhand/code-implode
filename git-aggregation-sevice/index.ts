@@ -1,6 +1,19 @@
 import express from "express";
 import cors from "cors";
-import {getCheckHandler} from "./repository/check-resources";
+import { repositoryResources, RepositoryResources} from "./repository/resources";
+import { Pool } from "pg";
+import { repositoryChecks} from "./repository/check";
+import { gitRepositoryClient} from "./repository/git-repositiory-client";
+import {workspaceDataAccess} from "./repository/workspace-data-aceess";
+
+
+const pool = new Pool({
+    user: "postgres",
+    database: "git_aggregation",
+    host: "localhost",
+    password: "borkage"
+});
+
 
 const app = express();
 const port = 3001
@@ -12,6 +25,14 @@ const options: cors.CorsOptions = {
 };
 
 app.use(cors(options));
-app.get("/check", getCheckHandler);
+
+const repoResources: RepositoryResources = repositoryResources(
+    repositoryChecks(
+        gitRepositoryClient(),
+        workspaceDataAccess(pool)
+    )
+)
+
+app.get("/check", repoResources.checkHandler);
 
 app.listen(port);
