@@ -1,8 +1,7 @@
 import axios, {AxiosError} from "axios";
 import StatusCode from "status-code-enum";
 import {HttpError, HttpRequestOutcome, isHttpError, makeSerializable} from "../http-error";
-
-const REPO_SERVICE_URL = "http://localhost:3001"
+import configuration from "../config/configuration";
 
 export type PublicRepoInfo = {
     title: string,
@@ -25,7 +24,7 @@ export type CheckRepoRequestOutcome = HttpRequestOutcome<PublicRepoInfo | RepoNo
 export async function checkRepoUrl(url: URL): Promise<CheckRepoRequestOutcome> {
     let response;
     try {
-        response = await axios.get(`${REPO_SERVICE_URL}/check?url=${url}`);
+        response = await axios.get(`${configuration.GIT_AGGREGATION_SERVICE_HOST}/check?url=${url}`);
         return response.data as PublicRepoInfo;
     } catch (untypedError: any) {
         const error: Error = (untypedError instanceof Error) ? untypedError :

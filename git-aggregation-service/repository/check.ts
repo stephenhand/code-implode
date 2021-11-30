@@ -22,11 +22,11 @@ export function repositoryChecks(gitRepoClient: GitRepositoryClient, workspaceDa
             }
             try {
                 repoInfo.workspaces = await workspaceDataAccess.getWorkspacesByOwnerAndRepo(owner, repUrl);
-                console.info(`${repoInfo.workspaces.length} workspaces for repo '${repUrl}' owned by '${owner}'. Check data will not include workspace information`)
+                console.info(`${repoInfo.workspaces.length} workspaces for repo '${repUrl}' owned by '${owner}'.`)
                 console.debug(repoInfo.workspaces.map(w => w.id));
             }
             catch (dbError) {
-                console.warn(`Error querying workspaces for repo '${repUrl}' owned by '${owner}'. Check data will not include workspace information`, dbError)
+                console.warn(`Error querying workspaces for repo '${repUrl}' owned by '${owner}'. Check data will not include workspace information.`, dbError)
             }
             return repoInfo;
         }

@@ -1,0 +1,17 @@
+services:
+  web:
+    environment:
+      - REACT_APP_CONFIG_GIT_AGGREGATION_SERVICE_HOST=http://localhost:3001
+    build: ./web-gui
+    ports:
+      - "4000:4000"
+  service:
+    environment:
+      - GIT_AGGREGATION_DB_HOST=db
+    build: ./git-aggregation-service
+    ports:
+      - "3001:3001"
+  db:
+    build: ./db
+    ports:
+      - "5432:5432"

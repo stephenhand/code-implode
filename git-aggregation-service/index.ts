@@ -5,20 +5,22 @@ import { Pool } from "pg";
 import { repositoryChecks} from "./repository/check";
 import { gitRepositoryClient} from "./repository/git-repositiory-client";
 import {workspaceDataAccess} from "./repository/workspace-data-aceess";
+import {runtimeConfiguration} from "./configuration";
 
+
+console.log("Service Configuration:", JSON.stringify(runtimeConfiguration))
 
 const pool = new Pool({
     user: "postgres",
-    database: "git_aggregation",
-    host: "localhost",
+    database: "git_aggregations",
+    host: runtimeConfiguration.database.host,
     password: "borkage"
 });
-
 
 const app = express();
 const port = 3001
 
-const allowedOrigins = ['http://localhost:3000'];
+const allowedOrigins = ['http://localhost:3000','http://localhost:4000'];
 
 const options: cors.CorsOptions = {
     origin: allowedOrigins
@@ -36,3 +38,5 @@ const repoResources: RepositoryResources = repositoryResources(
 app.get("/check", repoResources.checkHandler);
 
 app.listen(port);
+
+console.log(`Service listening on port ${port}`);
