@@ -20,7 +20,7 @@ const pool = new Pool({
 const app = express();
 const port = 3001
 
-const allowedOrigins = ['http://localhost:3000','http://localhost:4000'];
+const allowedOrigins = ['*'];
 
 const options: cors.CorsOptions = {
     origin: allowedOrigins

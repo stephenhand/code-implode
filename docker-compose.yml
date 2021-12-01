@@ -1,17 +1,20 @@
 services:
   web:
-    environment:
-      - REACT_APP_CONFIG_GIT_AGGREGATION_SERVICE_HOST=http://localhost:3001
+    image: stephenhand/git-aggregations-web
     build: ./web-gui
+    environment:
+      - REACT_APP_CONFIG_GIT_AGGREGATION_SERVICE_HOST=http://code-loadb-2lkvxgt6ksq6-33568eceadcccb9c.elb.us-east-1.amazonaws.com/:3001
     ports:
       - "4000:4000"
   service:
+    image: stephenhand/git-aggregations-service
+    build: ./git-aggregation-service
     environment:
       - GIT_AGGREGATION_DB_HOST=db
-    build: ./git-aggregation-service
     ports:
       - "3001:3001"
   db:
+    image: stephenhand/git-aggregations-db
     build: ./db
     ports:
       - "5432:5432"
